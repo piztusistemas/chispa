@@ -1019,6 +1019,74 @@ class LayUlkTool(_LayerLockTool):
     lock = False
 
 
+class LayMCurTool(Tool):
+    """LAYMCUR: make the layer of a picked object the current layer.
+
+    One pick and done, like AutoCAD. Noun-verb works too: a preselection
+    whose objects all share one layer makes that layer current at once.
+    """
+
+    entity_picker = True
+
+    def start(self) -> None:
+        self.name = "LAYMCUR"
+        services = self.ctx.services
+        preselected = services._selection_entities() if services else []
+        layers = set(_layer_names_of(preselected))
+        if len(layers) == 1:
+            self._make_current(layers.pop())
+            return
+        if len(layers) > 1:
+            self.ctx.echo(tr("The selected objects are on several layers."))
+        self.prompt("Select object whose layer will become current:")
+
+    def on_point(self, point: Point) -> None:
+        services = self.ctx.services
+        entity = services.pick_entity(point) if services else None
+        if entity is None:
+            return
+        self._make_current(entity.dxf.get("layer", "0"))
+
+    def _make_current(self, name: str) -> None:
+        from core.layers import make_current
+
+        window = self.ctx.services.window
+
+        def execute(commands) -> None:
+            for command in commands:
+                self.ctx.execute(command)
+
+        if make_current(window.document, name, execute=execute,
+                        echo=self.ctx.echo):
+            self.ctx.echo(tr('"{name}" is now the current layer.', name=name))
+            window._sync_panels()
+        self.ctx.finish()
+
+
+class LayCurTool(Tool):
+    """LAYCUR: assign the selection to the current layer.
+
+    LAYMCUR's mirror image -- there the picked object's layer becomes
+    current, here the current layer is stamped onto the whole selection
+    (lines, blocks, anything). One selection and done, like ERASE.
+    """
+
+    wants_selection = True
+
+    def start(self) -> None:
+        self.name = "LAYCUR"
+
+    def on_selection(self, entities: list) -> None:
+        if entities:
+            from core.layers import current_layer_name
+
+            name = current_layer_name(self.ctx.services.window.document)
+            self.ctx.execute(actions.SetPropertyCommand(entities, "layer", name))
+            self.ctx.echo(tr('{count} object(s) moved to layer "{name}".',
+                             count=len(entities), name=name))
+        self.ctx.finish()
+
+
 class ImageAdjustTool(Tool):
     """-IMAGEADJUST: option, then a 0-100 value, applied to the selection.
 
@@ -1559,6 +1627,8 @@ MODIFY_TOOL_CLASSES = {
     "LAYFRZ": LayFrzTool,
     "LAYLCK": LayLckTool,
     "LAYULK": LayUlkTool,
+    "LAYMCUR": LayMCurTool,
+    "LAYCUR": LayCurTool,
     "IMAGEADJUST": ImageAdjustTool,
     "TRANSPARENCY": ImageTransparencyTool,
     "ISOLATEOBJECTS": IsolateObjectsTool,

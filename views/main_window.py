@@ -4148,6 +4148,7 @@ class MainWindow(DocumentTabsMixin, QMainWindow):
                      "STRETCH", "BREAK", "JOIN",
                      "CHAMFER", "ARRAY", "MATCHPROP", "CHPROP", "PEDIT",
                      "DRAWORDER", "LAYISO", "LAYOFF", "LAYFRZ", "LAYLCK",
+                     "LAYMCUR", "LAYCUR",
                      "LAYULK", "IMAGEATTACH",
                      "TABLE", "PDFATTACH", "IMAGEADJUST", "TRANSPARENCY",
                      "LENGTHEN", "ALIGN", "BOUNDARY", "-BOUNDARY", "DONUT",

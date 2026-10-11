@@ -2068,5 +2068,9 @@
   "Unknown variable name.": "Nombre de variable desconocido.",
   "Enter variable name:": "Indique el nombre de la variable:",
   "Select an annotation object:": "Designe un objeto de anotación:",
-  "That is not an annotation object.": "No es un objeto de anotación."
+  "That is not an annotation object.": "No es un objeto de anotación.",
+  "Select object whose layer will become current:": "Designe el objeto cuya capa se convertirá en la actual:",
+  "\"{name}\" is now the current layer.": "\"{name}\" es ahora la capa actual.",
+  "The selected objects are on several layers.": "Los objetos seleccionados están en varias capas.",
+  "{count} object(s) moved to layer \"{name}\".": "{count} objeto(s) trasladado(s) a la capa \"{name}\"."
 }

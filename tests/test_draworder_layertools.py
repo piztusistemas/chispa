@@ -345,3 +345,65 @@ def test_each_group_draws_whole_before_the_next():
     assert scene.lines.visible_runs(rect, 1.0, 0.0, -1)
     assert not scene.lines.visible_runs(rect, 1.0, 0.0, 0)
     assert scene.triangles.visible_runs(rect, 1.0, 0.0, 0)
+
+
+def test_laymcur_makes_the_picked_objects_layer_current(qapp):
+    """Typed as the user types it: the alias table, then one pick."""
+    win = _win(qapp)
+    try:
+        doc = win.document
+        doc.modelspace().add_line((0, 0), (5, 5), dxfattribs={"layer": "EJES"})
+        win.dispatcher.submit("LAYMCUR")
+        win.tools.tool.on_point((2.5, 2.5))
+        assert doc.doc.header["$CLAYER"] == "EJES"
+        assert win.tools.tool is None          # one pick and done
+        assert win._layer_combo.currentText() == "EJES"
+    finally:
+        win.close()
+
+
+def test_laymcur_takes_a_preselection_on_one_layer(qapp):
+    win = _win(qapp)
+    try:
+        doc = win.document
+        line = doc.modelspace().add_line((0, 0), (5, 5),
+                                         dxfattribs={"layer": "COTAS"})
+        win.tools.selection = {line.dxf.handle}
+        win.dispatcher.submit("LAYMCUR")
+        assert doc.doc.header["$CLAYER"] == "COTAS"
+    finally:
+        win.close()
+
+
+def test_laycur_moves_a_selection_of_lines_and_blocks_to_the_current_layer(qapp):
+    """LAYCUR's mirror of LAYMCUR: a selection, not a single pick, and the
+    other direction -- the current layer wins, not the picked one's."""
+    win = _win(qapp)
+    try:
+        doc = win.document
+        doc.doc.blocks.new("SILLA")
+        line = doc.modelspace().add_line((0, 0), (5, 5),
+                                         dxfattribs={"layer": "COTAS"})
+        insert = doc.modelspace().add_blockref(
+            "SILLA", (1, 1), dxfattribs={"layer": "EJES"})
+        win.dispatcher.submit("CLAYER MUROS")
+        win.tools.selection = {line.dxf.handle, insert.dxf.handle}
+        win.dispatcher.submit("LAYCUR")
+        assert line.dxf.layer == "MUROS" and insert.dxf.layer == "MUROS"
+        assert win.tools.tool is None          # one selection and done
+        win.history.undo()
+        assert line.dxf.layer == "COTAS" and insert.dxf.layer == "EJES"
+    finally:
+        win.close()
+
+
+def test_laycur_with_nothing_selected_does_nothing(qapp):
+    win = _win(qapp)
+    try:
+        win.dispatcher.submit("CLAYER MUROS")
+        win.dispatcher.submit("LAYCUR")
+        win.tools.finish_selection()             # Enter: empty selection
+        assert win.tools.tool is None
+    finally:
+        win.close()
+
