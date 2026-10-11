@@ -397,6 +397,30 @@ def test_a_chamfer_cuts_each_line_by_its_own_distance():
     assert (0.0, 4.0, 0.0, 10.0) in ends or (0.0, 10.0, 0.0, 4.0) in ends
 
 
+def test_a_chamfer_keeps_the_side_of_the_line_that_was_picked():
+    """As FILLET: a vertical crossed nearly halfway, picked below the
+    crossing, keeps its lower part even though the upper one is longer."""
+    from tools.modify import ChamferTool
+
+    h = Harness()
+    a = h.msp.add_line((0, 0), (0, 275))
+    b = h.msp.add_line((77, 136), (360, 136))
+    ChamferTool.dist1, ChamferTool.dist2 = 10.0, 10.0
+    trimmode.set_trimmode(True)
+    tool = ChamferTool(h.ctx)
+    tool.start()
+    h._entity = a
+    tool.on_point((0.0, 40.0))
+    h._entity = b
+    tool.on_point((200.0, 136.0))
+
+    ends = sorted((round(e.dxf.start.x, 6), round(e.dxf.start.y, 6),
+                   round(e.dxf.end.x, 6), round(e.dxf.end.y, 6))
+                  for e in entities(h.document))
+    assert (0.0, 0.0, 0.0, 126.0) in ends
+    assert (0.0, 126.0, 10.0, 136.0) in ends
+
+
 def test_chamfer_with_no_trim_keeps_both_originals():
     from tools.modify import ChamferTool
 

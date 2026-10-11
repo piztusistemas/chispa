@@ -432,6 +432,42 @@ def test_fillet_line_and_arc_is_tangent_to_both_and_trims_them():
     assert list(h.msp.query("LINE"))[0].dxf.end.x == pytest.approx(30)
 
 
+@pytest.mark.parametrize("pick_y, kept_y, center_y", [
+    (40.0, 0.0, 136.0 - 30.0),       # picked below the crossing: downward
+    (230.0, 275.0, 136.0 + 30.0),    # picked above it: upward
+])
+def test_fillet_keeps_the_side_of_the_line_that_was_picked(pick_y, kept_y,
+                                                           center_y):
+    """A vertical crossed nearly halfway by a horizontal that stops short of
+    it: AutoCAD keeps the side each line was picked on. The fillet used to
+    keep the farther end -- here the upper one, by 3 units -- and rounded
+    upward however the vertical was picked."""
+    h = Harness()
+    h.msp.add_line((0, 0), (0, 275))
+    h.msp.add_line((77, 136), (360, 136))
+    _run_fillet(h, 30.0, (0, pick_y), (200, 136))
+    arcs = list(h.msp.query("ARC"))
+    assert len(arcs) == 1
+    assert arcs[0].dxf.center.x == pytest.approx(30.0)
+    assert arcs[0].dxf.center.y == pytest.approx(center_y)
+    vertical = [l for l in h.msp.query("LINE")
+                if abs(l.dxf.start.x) < 1e-9 and abs(l.dxf.end.x) < 1e-9]
+    assert len(vertical) == 1
+    assert any(math.dist(p, (0.0, kept_y)) < 1e-9 for p in _ends(vertical[0]))
+    assert _meets(arcs[0], vertical[0])
+
+
+def test_fillet_radius_zero_keeps_the_picked_side_too():
+    h = Harness()
+    h.msp.add_line((0, 0), (0, 275))
+    h.msp.add_line((77, 136), (360, 136))
+    _run_fillet(h, 0.0, (0, 40), (200, 136))
+    ends = sorted(tuple(sorted((round(p[0], 6), round(p[1], 6))
+                               for p in _ends(l)))
+                  for l in h.msp.query("LINE"))
+    assert ends == [((0.0, 0.0), (0.0, 136.0)), ((0.0, 136.0), (360.0, 136.0))]
+
+
 def test_fillet_two_arcs():
     h = Harness()
     h.msp.add_arc((0, 0), 10, 0, 180)
