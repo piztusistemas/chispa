@@ -1077,6 +1077,74 @@ def test_right_click_accepts_prompt_default(qapp):
     win.close()
 
 
+def _right_click_canvas(win) -> None:
+    """A real right press on the canvas, through mousePressEvent."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtTest import QTest
+
+    QTest.mouseClick(win.viewport, Qt.RightButton,
+                     pos=win.viewport.rect().center())
+
+
+def test_right_click_runs_the_command_typed_on_the_command_line(qapp,
+                                                                monkeypatch):
+    """"L" + right-click runs LINE, like "L" + Enter -- not the shortcut
+    menu, not a repeat of the last command."""
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    win.show()
+    win.new_document()
+    try:
+        menus = []
+        monkeypatch.setattr(win, "show_canvas_context_menu", menus.append)
+        win.command_line.input.setText("L")
+        _right_click_canvas(win)
+        assert win.tools.active() and win.tools.tool.name == "LINE"
+        assert win.command_line.input.text() == ""
+        assert menus == []
+    finally:
+        win.close()
+
+
+def test_right_click_answers_a_prompt_with_the_typed_value(qapp):
+    """During LINE, "@10,0" + right-click is the next point, as with Enter."""
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    win.show()
+    win.new_document()
+    try:
+        win.tools.start_tool("LINE")
+        win.tools.on_click(0.0, 0.0)
+        win.command_line.input.setText("@10,0")
+        _right_click_canvas(win)
+        lines = [e for e in win.document.modelspace() if e.dxftype() == "LINE"]
+        assert len(lines) == 1
+        assert tuple(lines[0].dxf.end)[:2] == pytest.approx((10.0, 0.0))
+        assert win.tools.active()                  # still asking for points
+        _right_click_canvas(win)                   # empty: Enter ends LINE
+        assert not win.tools.active()
+    finally:
+        win.close()
+
+
+def test_right_click_with_nothing_typed_keeps_the_shortcut_menu(qapp,
+                                                                 monkeypatch):
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    win.show()
+    win.new_document()
+    try:
+        menus = []
+        monkeypatch.setattr(win, "show_canvas_context_menu", menus.append)
+        _right_click_canvas(win)
+        assert len(menus) == 1
+    finally:
+        win.close()
+
+
 def test_a_pan_tick_places_the_model_by_matrix(qapp):
     """Panning inside a viewport rebuilt the whole sheet: 207 ms a tick on a
     200-entity plan, and the display trailed the cursor. Nothing about the

@@ -534,7 +534,15 @@ class MainWindow(DocumentTabsMixin, QMainWindow):
 
     def on_canvas_right_click(self, global_pos) -> None:
         """Right-click on the canvas: Enter while a command runs, the
-        shortcut menu when idle (classic AutoCAD defaults)."""
+        shortcut menu when idle (classic AutoCAD defaults).
+
+        Text typed on the command line always wins: the right button then
+        IS the Enter key -- "L" + right-click runs LINE, "50" + right-click
+        answers the distance -- idle or not, whatever the Options say.
+        """
+        if self.command_line.input.has_typed_text():
+            self.command_line.input.accept()
+            return
         if self.tools.active() or self.tools._selecting_for is not None:
             if not self.tools.on_text(""):
                 self.dispatcher.submit("")
