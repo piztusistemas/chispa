@@ -802,14 +802,21 @@ class ToolController(QObject):
             if ex is not None:
                 smask &= self.index._seg_oidx != ex
                 cmask &= self.index._circle_oidx != ex
-        if near is not None and len(seg_arr):
+        if near is not None:
+            # Padded: a horizontal or vertical target has a zero-width box,
+            # and a cutter that ends ON it (a piece left by the previous
+            # trim) lands a rounding error outside -- dropped here, it cut
+            # nothing and the trim failed at random. Letting a few extra
+            # edges through is harmless: the intersection math decides.
             x0, y0, x1, y1 = near
+            pad = 1e-6 * max(1.0, abs(x0), abs(y0), abs(x1), abs(y1))
+            x0, y0, x1, y1 = x0 - pad, y0 - pad, x1 + pad, y1 + pad
+        if near is not None and len(seg_arr):
             smask &= ((np.minimum(seg_arr[:, 0], seg_arr[:, 2]) <= x1)
                       & (np.maximum(seg_arr[:, 0], seg_arr[:, 2]) >= x0)
                       & (np.minimum(seg_arr[:, 1], seg_arr[:, 3]) <= y1)
                       & (np.maximum(seg_arr[:, 1], seg_arr[:, 3]) >= y0))
         if near is not None and len(circ_arr):
-            x0, y0, x1, y1 = near
             cmask &= ((circ_arr[:, 0] - circ_arr[:, 2] <= x1)
                       & (circ_arr[:, 0] + circ_arr[:, 2] >= x0)
                       & (circ_arr[:, 1] - circ_arr[:, 2] <= y1)

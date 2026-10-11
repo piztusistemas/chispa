@@ -156,7 +156,12 @@ def trim_segment(seg: Seg, cutters: list[Seg],
                 y = seg[1] + t * (seg[3] - seg[1])
                 if _on_arc(center, a0, a1, x, y):
                     ts.append(min(max(t, 0.0), 1.0))
-    ts = sorted({round(t, 12) for t in ts if EPS < t < 1.0 - EPS})
+    # Deduplicate without rounding: round(t, 12) moved every cut point off
+    # its cutter by up to 1e-12 of the length (1e-10 on a 300 m line), so
+    # the trimmed piece stopped short of the edge it was cut at -- and no
+    # longer cut anything itself on the next pick.
+    ts = [t for t in sorted(ts) if EPS < t < 1.0 - EPS]
+    ts = [t for i, t in enumerate(ts) if i == 0 or t - ts[i - 1] > 1e-12]
     if not ts:
         return None
     lo = max((t for t in ts if t <= pick_t), default=0.0)

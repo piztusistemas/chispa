@@ -205,6 +205,38 @@ def test_trim_full_flow_through_controller(qapp):
     win.close()
 
 
+def test_trimming_a_hash_open_lets_each_trimmed_piece_cut_the_next(qapp):
+    # Regression: a "#" of two horizontals and two verticals, opened in the
+    # middle one side at a time. The bottom trim failed ("No cutting edge
+    # crosses it") because its cutters are the pieces the side trims left,
+    # which ended a rounding error off the line -- and a horizontal target's
+    # zero-height box filtered them out.
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    win.show()
+    qapp.processEvents()
+    x0, y0, w, h = 94.40934857726643, -301.4977554453162, 18.03246, 17.50007
+    xa, xb, ya, yb = x0, x0 + w, y0, y0 + h
+    for a, b in (((x0 - w, yb), (xb + w, yb)), ((x0 - w, ya), (xb + w, ya)),
+                 ((xa, y0 - h), (xa, yb + h)), ((xb, y0 - h), (xb, yb + h))):
+        win.dispatcher.submit("l")
+        win.tools.on_click(*a)
+        win.tools.on_click(*b)
+        win.tools.on_text("")
+    win.dispatcher.submit("ze")
+    win.dispatcher.submit("tr")
+    win.tools.on_text("")                          # Enter: all edges
+    mx, my = (xa + xb) / 2, (ya + yb) / 2
+    for point in ((mx, yb), (xa, my), (xb, my), (mx, ya)):
+        win.tools.on_click(*point)                 # top, left, right, bottom
+    win.tools.on_text("")
+    lines = win.document.modelspace().query("LINE")
+    assert len(lines) == 8                         # every trim split its line
+    win.document.dirty = False
+    win.close()
+
+
 def test_edges_stay_highlighted_during_trim(qapp):
     # Preselect circles -> TR: AutoCAD keeps the cutting edges highlighted
     # to guide the picks; the highlight clears when the command ends.
