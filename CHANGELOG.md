@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **PNGOUT** (File ▸ Export ▸ PNG): the selected objects as a PNG on a
+  transparent background, cropped to the selection and drawn as plotted
+  (black on transparency, plot styles and Plot-off layers respected).
+  Objects selected beforehand are used as they are.
+
 ## v0.6.7 — 2026-10-11
 
 The colleague's drawing, edited as its author would: every dimension of a

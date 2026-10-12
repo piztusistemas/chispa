@@ -1422,5 +1422,10 @@
   "{n} min ago": "hai {n} min",
   "{n} object(s) selected.": "{n} obxecto(s) seleccionado(s).",
   "{n} placed.": "{n} colocados.",
-  "{count} object(s) moved to layer \"{name}\".": "{count} obxecto(s) trasladado(s) á capa \"{name}\"."
+  "{count} object(s) moved to layer \"{name}\".": "{count} obxecto(s) trasladado(s) á capa \"{name}\".",
+  "PNG (transparent)...": "PNG (transparente)...",
+  "Export to PNG": "Exportar a PNG",
+  "PNG image (*.png)": "Imaxe PNG (*.png)",
+  "The selection draws nothing; no image written.": "A selección non debuxa nada; non se escribiu ningunha imaxe.",
+  "{count} object(s) exported to {path} ({width} x {height} px).": "{count} obxecto(s) exportado(s) a {path} ({width} x {height} px)."
 }

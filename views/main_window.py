@@ -1374,6 +1374,7 @@ class MainWindow(DocumentTabsMixin, QMainWindow):
         # drawing that is open stays what it was.
         export_menu = file_menu.addMenu(tr("Export"))
         item(export_menu, tr("DXF..."), lambda: self._cmd_dxfout())
+        cmd_item(export_menu, tr("PNG (transparent)..."), "PNGOUT", icon=False)
         file_menu.addSeparator()
         # AutoCAD: File > Drawing Utilities > Drawing Recovery (p. 659),
         # and Drawing Utilities > Purge (p. 1567).
@@ -4191,7 +4192,7 @@ class MainWindow(DocumentTabsMixin, QMainWindow):
         # other two need the mouse and are tools
         d.register("PURGE", self._cmd_purge_dialog)
         d.register("-PURGE", self._cmd_purge_cli)
-        for name in ("OVERKILL", "-OVERKILL", "WBLOCK", "-WBLOCK"):
+        for name in ("OVERKILL", "-OVERKILL", "WBLOCK", "-WBLOCK", "PNGOUT"):
             d.register(name, lambda *a, n=name: self.tools.start_tool(n))
         d.register("LINETYPE", self._cmd_linetype)
         d.register("MULTIPLE", self._cmd_multiple)

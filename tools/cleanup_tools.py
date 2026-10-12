@@ -251,7 +251,85 @@ class WblockTool(Tool):
         self.ctx.finish()
 
 
+class PngoutTool(Tool):
+    """PNGOUT: the selected objects as a PNG on a transparent background.
+
+    AutoCAD's order: the output file, then "Select objects:" (objects
+    selected before the command are used as they are).
+    """
+
+    wants_selection = False
+
+    def start(self) -> None:
+        self.name = "PNGOUT"
+        self._path: Path | None = None
+        document = getattr(self.ctx.services, "document", None)
+        if document is None:
+            self.ctx.echo(tr("Nothing to export yet."))
+            self.ctx.finish()
+            return
+        stem = Path(document.name).stem or "drawing"
+        ask = getattr(self.ctx.services, "ask_save_file", None)
+        chosen = ask(tr("Export to PNG"), stem + ".png",
+                     tr("PNG image (*.png)")) if ask else None
+        if not chosen:
+            self.ctx.echo(tr("*Cancel*"))
+            self.ctx.finish()
+            return
+        path = Path(chosen)
+        if path.suffix.lower() != ".png":
+            path = path.with_suffix(".png")
+        self._path = path
+        selected = getattr(self.ctx.services, "_selection_entities", None)
+        entities = selected() if selected is not None else []
+        if entities:
+            self.on_selection(entities)
+            return
+        request = getattr(self.ctx.services, "request_selection", None)
+        if request is None:
+            self.ctx.finish()
+            return
+        request()
+
+    def selection_prompt(self) -> str:
+        return tr("Select objects:")
+
+    def on_enter(self) -> None:
+        self.ctx.echo(tr("Nothing selected."))
+        self.ctx.finish()
+
+    def on_cancel(self) -> None:
+        self.ctx.echo(tr("*Cancel*"))
+        self.ctx.finish()
+
+    def on_selection(self, entities: list) -> None:
+        from formats import png_out
+
+        if not entities:
+            self.ctx.echo(tr("Nothing selected."))
+            self.ctx.finish()
+            return
+        services = self.ctx.services
+        window = getattr(services, "window", None)
+        layout = getattr(window, "_active_layout", None)
+        handles = [e.dxf.handle for e in entities]
+        try:
+            width, height = png_out.export_png(services.document, handles,
+                                               self._path, layout)
+        except png_out.NothingToExport:
+            self.ctx.echo(tr("The selection draws nothing; no image written."))
+        except Exception as exc:  # noqa: BLE001 - say why, do not crash
+            self.ctx.echo(tr("Could not write {path}: {error}",
+                             path=str(self._path), error=str(exc)))
+        else:
+            self.ctx.echo(tr("{count} object(s) exported to {path} "
+                             "({width} x {height} px).", count=len(handles),
+                             path=str(self._path), width=width, height=height))
+        self.ctx.finish()
+
+
 CLEANUP_TOOL_CLASSES = {
+    "PNGOUT": PngoutTool,
     "OVERKILL": OverkillTool,
     "-OVERKILL": OverkillTool,
     "WBLOCK": WblockTool,

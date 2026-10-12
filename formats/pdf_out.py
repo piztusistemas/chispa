@@ -90,11 +90,12 @@ def plot_style_for(document, layout_name: str | None, ctb: str | None):
 
 
 def build_graphics_scene(document, layout_name: str | None = None,
-                         ctb: str | None = None):
+                         ctb: str | None = None, handles=None):
     """Replay a layout into a QGraphicsScene (vector items, world coords).
 
     ``ctb`` names the plot style table (see core.plotstyles); None takes the
-    layout's own, "" plots with none.
+    layout's own, "" plots with none. ``handles`` limits the scene to those
+    entities (PNGOUT's selection); None draws the whole layout.
     """
     from ezdxf.addons.drawing.pyqt import PyQtBackend
     from PySide6.QtWidgets import QGraphicsScene
@@ -135,8 +136,10 @@ def build_graphics_scene(document, layout_name: str | None = None,
         _flatten_distance(layout) * 0.1, document))
     if size is not None:
         config = config.with_changes(pdsize=size)
+    only = None if handles is None else \
+        (lambda entity: str(entity.dxf.get("handle", "")) in handles)
     TolerantFrontend(context, backend, config).draw_layout(
-        layout, finalize=False, layout_properties=sheet)
+        layout, finalize=False, layout_properties=sheet, filter_func=only)
     if getattr(layout, "is_any_paperspace", False):
         # Viewport frames plot only when the page setup asks for them
         # (plot_layout_flags bit 1, off by AutoCAD's own default — clean
