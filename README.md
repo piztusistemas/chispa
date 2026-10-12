@@ -124,7 +124,8 @@ What works today:
 - **Output**: print / export PDF and PNG to exact scale, from model or
   layout, the extents, the view or a window picked on the drawing, with
   `.ctb` plot style tables; **PUBLISH** several layouts into one PDF;
-  File ▸ Export ▸ DXF for Blender or QGIS.
+  File ▸ Export ▸ DXF for Blender or QGIS; **PNGOUT** writes the selected
+  objects as a PNG on a transparent background.
 - **External references** (XATTACH, -XREF and an Xrefs panel): a
   colleague's drawings shown in place, snapped to, kept on save.
 - **Block attributes** (ATTDEF, the attribute editor on double-click,
