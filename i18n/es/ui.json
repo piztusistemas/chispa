@@ -2073,7 +2073,6 @@
   "\"{name}\" is now the current layer.": "\"{name}\" es ahora la capa actual.",
   "The selected objects are on several layers.": "Los objetos seleccionados están en varias capas.",
   "{count} object(s) moved to layer \"{name}\".": "{count} objeto(s) trasladado(s) a la capa \"{name}\".",
-  "Softens the staircase on slanted lines and text. Measured on a real sheet: 4x costs about 0.7 ms of a frame, 8x about 1.8 ms. Takes effect the next time {app} starts.": "Suaviza el escalonado de las líneas inclinadas y del texto. Medido en un plano real: 4x cuesta unos 0,7 ms de un cuadro y 8x unos 1,8 ms. Se aplica la próxima vez que arranque {app}.",
   "PNG (transparent)...": "PNG (transparente)...",
   "Export to PNG": "Exportar a PNG",
   "PNG image (*.png)": "Imagen PNG (*.png)",
