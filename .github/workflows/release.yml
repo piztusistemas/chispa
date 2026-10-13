@@ -96,6 +96,21 @@ jobs:
           mkdir -p tarcheck && tar -C tarcheck -xzf dist/IngeCAD-*-linux-x86_64.tar.gz
           tarcheck/IngeCAD-*/ingecad --check
 
+      # The same bundle once more, as a .deb. Installing it through apt is
+      # what proves the Depends line resolves and the launcher in /usr/bin
+      # reaches the bundle under /opt.
+      - name: Build and install the .deb
+        run: |
+          packaging/build-deb.sh dist build/pyi/ingecad
+          sudo apt-get install -y ./dist/ingecad_*_amd64.deb
+          ingecad --check
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IngeCAD-deb-amd64
+          path: dist/ingecad_*_amd64.deb
+          if-no-files-found: error
+
       - uses: actions/upload-artifact@v4
         with:
           name: IngeCAD-AppImage-x86_64
@@ -123,7 +138,8 @@ jobs:
               --notes "See CHANGELOG.md for this release's details."
           gh release upload "${GITHUB_REF_NAME}" \
             dist/IngeCAD-*-x86_64.AppImage \
-            dist/IngeCAD-*-linux-x86_64.tar.gz --clobber
+            dist/IngeCAD-*-linux-x86_64.tar.gz \
+            dist/ingecad_*_amd64.deb --clobber
 
   snap:
     name: Snap (x86_64)

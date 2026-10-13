@@ -243,6 +243,14 @@ tar -xzf IngeCAD-*-linux-x86_64.tar.gz
 IngeCAD-*/ingecad
 ```
 
+**Debian / Ubuntu (.deb)** — the same build as a package (Debian 12,
+Ubuntu 22.04 and later): menu launcher, `.dwg`/`.dxf` icons and `ingecad`
+on the PATH, removed cleanly with `sudo apt remove ingecad`:
+
+```bash
+sudo apt install ./ingecad_*_amd64.deb
+```
+
 `--check` prints where the app found its shaders, translations and converters,
 and exits non-zero if any of them is missing.
 
